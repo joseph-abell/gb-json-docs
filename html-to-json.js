@@ -200,7 +200,7 @@ const getTypes = (container) => {
 		const types = getTypes(container);
 
 		const body = JSON.stringify(types, null, 2);
-		fs.writeFileSync('index.json', body, 'utf8');
+		fs.writeFileSync('api/index.json', body, 'utf8');
 		console.log('finished');
 	} catch (err) {
 		console.log(err);

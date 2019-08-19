@@ -1,8 +1,8 @@
 # example netlify.toml
 [build]
-  command = "# no build command"
+  command = "node html-to-json"
   functions = "functions"
-  publish = "."
+  publish = "./api"
 
   ## Uncomment to use this redirect for Single Page Applications like create-react-app. 
   ## Not needed for static site generators.

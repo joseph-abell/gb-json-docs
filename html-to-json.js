@@ -197,9 +197,8 @@ const getTypes = (container) => {
 		const { window: { document } } = new JSDOM(cleanData);
 		const container = document.getElementsByClassName('js-toc-content')[0].innerHTML;
 
-		const types = getTypes(container);
-
-		const body = JSON.stringify(types, null, 2);
+		const [ responses, resources ] = getTypes(container);
+		const body = JSON.stringify({ responses: responses.items, resources: resources.groups }, null, 2);
 		fs.writeFileSync('docs/index.json', body, 'utf8');
 		console.log('finished');
 	} catch (err) {

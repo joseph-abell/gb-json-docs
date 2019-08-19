@@ -177,6 +177,7 @@ const getTypes = (container) => {
 
 (async () => {
 	try {
+		console.log('running html-to-json');
 		const response = await fetch('https://giantbomb.com/api/documentation');
 
 		if (!response.ok) {
@@ -200,6 +201,7 @@ const getTypes = (container) => {
 
 		const body = JSON.stringify(types, null, 2);
 		fs.writeFileSync('index.json', body, 'utf8');
+		console.log('finished');
 	} catch (err) {
 		console.log(err);
 	}

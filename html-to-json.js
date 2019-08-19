@@ -1,13 +1,14 @@
 /* eslint-disable */
 const fetch = require('node-fetch');
 const jsdom = require('jsdom');
+const fs = require('fs');
 const { JSDOM } = jsdom;
 
-const getUrlDescriptionAndSubgroups = (rawValues) => {
+const getInfoFromSubgroups = (rawValues) => {
 	let url;
 	let description;
 
-	const subgroups = rawValues.reduce((acc, subgroup) => {
+	let subgroups = rawValues.reduce((acc, subgroup) => {
 		const lastSubgroup = acc.length > 0 ? acc[acc.length - 1] : {};
 		const subgroupsMinusLastSubgroup = acc.length > 0 ? acc.slice(0, -1) : [];
 
@@ -96,6 +97,7 @@ const getUrlDescriptionAndSubgroups = (rawValues) => {
 	return [ url, description, subgroups ];
 };
 
+// Used to build up resources, which have a more complex structure.
 const getGroups = (rawString) => {
 	// once again, removing the first one as I've accidentally created a broken first item
 	// when splitting the subgroups apart
@@ -110,12 +112,35 @@ const getGroups = (rawString) => {
 
 		const rawString = document.getElementsByTagName('table')[0].innerHTML;
 		const rawValues = rawString.match(/\<tr>[\s\S]*?\<\/tr\>/g);
-		const [ url, description, subgroups ] = getUrlDescriptionAndSubgroups(rawValues);
+		let [ url, description, subgroups ] = getInfoFromSubgroups(rawValues);
+		if (!description) description = '';
 
-		return { title, url, description, subgroups };
+		let fields;
+		let filters;
+
+		subgroups = subgroups.map((subgroup) => {
+			if (subgroup.title === 'Fields') {
+				fields = subgroup.items;
+			}
+
+			if (subgroup.title === 'Filters') {
+				subgroup.items = subgroup.items.map((item) => {
+					delete item.filterable;
+					delete item.sortable;
+					return item;
+				});
+				filters = subgroup.items;
+			}
+
+			return subgroup;
+		});
+
+		return { title, url, description, filters, fields };
 	});
 };
 
+// Used for building up responses. We split the string based on instances of td elements to get
+// the component parts.
 const getItems = (rawValues) =>
 	rawValues
 		.map((rawValue) =>
@@ -150,7 +175,7 @@ const getTypes = (container) => {
 	});
 };
 
-exports.handler = async function(event, context) {
+(async () => {
 	try {
 		const response = await fetch('https://giantbomb.com/api/documentation');
 
@@ -173,15 +198,9 @@ exports.handler = async function(event, context) {
 
 		const types = getTypes(container);
 
-		return {
-			statusCode: 200,
-			body: JSON.stringify(types, null, 2)
-		};
+		const body = JSON.stringify(types, null, 2);
+		fs.writeFileSync('index.json', body, 'utf8');
 	} catch (err) {
-		console.log(err); // output to netlify function log
-		return {
-			statusCode: 500,
-			body: JSON.stringify({ msg: err.message }) // Could be a custom message or object i.e. JSON.stringify(err)
-		};
+		console.log(err);
 	}
-};
+})();

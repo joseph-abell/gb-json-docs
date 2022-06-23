@@ -17,7 +17,7 @@
 	},
 	"homepage": "https://github.com/gerbilsinspace/gb-json-docs#readme",
 	"dependencies": {
-		"jsdom": "^15.1.1",
+		"jsdom": "^16.5.0",
 		"node-fetch": "^2.6.1"
 	}
 }
